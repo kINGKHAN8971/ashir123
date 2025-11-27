@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arcadia — Simple Gaming Site</title>
+  <meta name="description" content="A compact gaming website with a playable Snake game, game list, and leaderboard (single-file)." />
+  <style>
+    /* Minimal modern styling (no frameworks) */
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--glass: rgba(255,255,255,0.03)}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#e6eef6;background:linear-gradient(180deg,#071021 0%,#081226 60%);}
+    .container{max-width:1100px;margin:28px auto;padding:20px}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:48px;height:48px;background:linear-gradient(135deg,var(--accent),#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+    nav a{color:var(--muted);margin-left:16px;text-decoration:none}
+    nav a:hover{color:var(--accent)}
+
+    main{display:grid;grid-template-columns:1fr 360px;gap:24px;margin-top:22px}
+
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    .hero{padding:28px;border-radius:14px;display:flex;flex-direction:column;gap:12px}
+    .hero h1{margin:0;font-size:28px}
+    .hero p{margin:0;color:var(--muted)}
+
+    .games-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+    .game-tile{background:var(--card);padding:12px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+    .game-tile h3{margin:0;font-size:16px}
+    .meta{font-size:13px;color:var(--muted)}
+
+    /* Right column */
+    .sidebar .card + .card{margin-top:16px}
+    .play-area{text-align:center}
+    canvas{background:transparent;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+
+    .controls{display:flex;gap:8px;justify-content:center;margin-top:12px}
+    .btn{background:var(--accent);border:none;color:#042022;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.05);color:var(--muted)}
+
+    footer{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
+
+    /* Responsive */
+    @media (max-width:980px){main{grid-template-columns:1fr} .games-grid{grid-template-columns:1fr} .sidebar{order:-1}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">A</div>
+        <div>
+          <div style="font-weight:700">Arcadia</div>
+          <div style="font-size:12px;color:var(--muted)">Play small, win big</div>
+        </div>
+      </div>
+      <nav>
+        <a href="#home">Home</a>
+        <a href="#games">Games</a>
+        <a href="#leaderboard">Leaderboard</a>
+      </nav>
+    </header>
+
+    <main>
+      <section>
+        <div class="card hero">
+          <h1 id="home">Welcome to Arcadia</h1>
+          <p>Lightweight gaming site demo. Play the included Snake game or browse other mini-games. Works offline — save the single file as <code>index.html</code> and open in your browser.</p>
+
+          <div class="games-grid" id="games">
+            <div class="game-tile" data-game="snake">
+              <h3>Snake</h3>
+              <div class="meta">Classic grid snake — arrow keys / WASD. Local scores saved.</div>
+            </div>
+            <div class="game-tile" data-game="coming">
+              <h3>Space Runner</h3>
+              <div class="meta">Coming soon — placeholder.</div>
+            </div>
+            <div class="game-tile" data-game="coming">
+              <h3>Memory Match</h3>
+              <div class="meta">Coming soon — placeholder.</div>
+            </div>
+            <div class="game-tile" data-game="coming">
+              <h3>Tetris Lite</h3>
+              <div class="meta">Coming soon — placeholder.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <h2 style="margin:0 0 8px 0">How to use</h2>
+          <ol style="color:var(--muted)">
+            <li>Save this file as <code>index.html</code>.</li>
+            <li>Open it in your browser (double-click).</li>
+            <li>Play Snake with arrow keys or WASD. Press <strong>Space</strong> to pause/restart.</li>
+            <li>Scores are kept in your browser (localStorage).</li>
+          </ol>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="card play-area">
+          <h3 style="margin-top:0">Play: Snake</h3>
+          <canvas id="game" width="360" height="360"></canvas>
+          <div class="controls">
+            <button id="startBtn" class="btn">Start</button>
+            <button id="pauseBtn" class="btn ghost">Pause</button>
+            <button id="resetBtn" class="btn ghost">Reset</button>
+          </div>
+          <div style="margin-top:10px;color:var(--muted)">Score: <span id="score">0</span></div>
+        </div>
+
+        <div class="card" id="leaderboard">
+          <h3 style="margin-top:0">Leaderboard (local)</h3>
+          <ol id="scoresList" style="margin:0;padding-left:18px;color:var(--muted)"></ol>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      Built with ❤️ — Single-file demo. Want more games or multiplayer? Ask me to add them.
+    </footer>
+  </div>
+
+  <script>
+    /* Simple Snake game with grid and local leaderboard */
+    (function(){
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const size = 18; // grid cell size
+      const cols = Math.floor(canvas.width / size);
+      const rows = Math.floor(canvas.height / size);
+
+      let snake, dir, food, running, score, timer;
+      const speed = 120; // ms per tick
+
+      function reset(){
+        snake = [{x:Math.floor(cols/2),y:Math.floor(rows/2)}];
+        dir = {x:1,y:0};
+        placeFood();
+        score = 0; updateScore();
+        running = false; clearInterval(timer);
+        draw();
+      }
+
+      function placeFood(){
+        let pos;
+        do{
+          pos = {x:Math.floor(Math.random()*cols), y:Math.floor(Math.random()*rows)};
+        } while(snake.some(s=>s.x===pos.x && s.y===pos.y));
+        food = pos;
+      }
+
+      function tick(){
+        const head = {x:snake[0].x + dir.x, y:snake[0].y + dir.y};
+        // wrap-around
+        head.x = (head.x + cols) % cols;
+        head.y = (head.y + rows) % rows;
+
+        // collision with self
+        if(snake.some(s=>s.x===head.x && s.y===head.y)){
+          gameOver(); return;
+        }
+
+        snake.unshift(head);
+        if(head.x===food.x && head.y===food.y){ score+=10; updateScore(); placeFood(); }
+        else snake.pop();
+        draw();
+      }
+
+      function draw(){
+        // background
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        // grid subtle
+        ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+        for(let x=0;x<=cols;x++){ ctx.beginPath(); ctx.moveTo(x*size,0); ctx.lineTo(x*size,canvas.height); ctx.stroke(); }
+        for(let y=0;y<=rows;y++){ ctx.beginPath(); ctx.moveTo(0,y*size); ctx.lineTo(canvas.width,y*size); ctx.stroke(); }
+
+        // food
+        ctx.fillStyle = '#ff6b6b';
+        roundRect(ctx, food.x*size+3, food.y*size+3, size-6, size-6, 4, true);
+
+        // snake
+        ctx.fillStyle = '#48bfe3';
+        for(let i=0;i<snake.length;i++){
+          const s = snake[i];
+          roundRect(ctx, s.x*size+2, s.y*size+2, size-4, size-4, 6, true);
+        }
+      }
+
+      function roundRect(ctx, x, y, w, h, r, fill){
+        ctx.beginPath();
+        ctx.moveTo(x+r,y);
+        ctx.arcTo(x+w,y,x+w,y+h,r);
+        ctx.arcTo(x+w,y+h,x,y+h,r);
+        ctx.arcTo(x,y+h,x,y,r);
+        ctx.arcTo(x,y,x+w,y,r);
+        ctx.closePath();
+        if(fill) ctx.fill(); else ctx.stroke();
+      }
+
+      function updateScore(){
+        document.getElementById('score').textContent = score;
+      }
+
+      function start(){ if(running) return; running=true; timer=setInterval(tick,speed); }
+      function pause(){ if(!running) return; running=false; clearInterval(timer); }
+
+      function gameOver(){
+        pause(); alert('Game Over! Your score: ' + score);
+        saveScore(score);
+        loadScores();
+      }
+
+      // controls
+      window.addEventListener('keydown', e=>{
+        const key = e.key;
+        if(key===' '){ // space toggles pause/start if already started, or restart
+          if(running) pause(); else start();
+          e.preventDefault();
+          return;
+        }
+        const map = {ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]};
+        const m = map[key];
+        if(m){
+          // prevent reverse
+          if(snake.length>1 && snake[0].x + m[0] === snake[1].x && snake[0].y + m[1] === snake[1].y) return;
+          dir = {x:m[0], y:m[1]};
+        }
+      });
+
+      document.getElementById('startBtn').addEventListener('click', start);
+      document.getElementById('pauseBtn').addEventListener('click', ()=>{ if(running) pause(); else start(); });
+      document.getElementById('resetBtn').addEventListener('click', ()=>{ reset(); });
+
+      // Leaderboard using localStorage
+      const LS_KEY = 'arcadia_scores_v1';
+      function saveScore(value){
+        const name = prompt('Enter name for leaderboard (max 12 chars)','Player') || 'Player';
+        const entry = {n: String(name).substring(0,12), s: value, t: Date.now()};
+        const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+        arr.push(entry);
+        arr.sort((a,b)=>b.s - a.s);
+        localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(0,10)));
+      }
+      function loadScores(){
+        const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+        const el = document.getElementById('scoresList'); el.innerHTML='';
+        if(arr.length===0){ el.innerHTML = '<li style="color:var(--muted)">No scores yet — be the first!</li>'; return; }
+        arr.forEach(it=>{ const li = document.createElement('li'); li.textContent = it.n + ' — ' + it.s; el.appendChild(li); });
+      }
+
+      // small UI: clicking game tiles loads the game area (only snake implemented)
+      document.querySelectorAll('.game-tile').forEach(t=>t.addEventListener('click', ()=>{
+        if(t.dataset.game==='snake'){
+          // scroll to play area
+          document.querySelector('.sidebar').scrollIntoView({behavior:'smooth'});
+        } else alert('This demo only has Snake implemented. Tell me if you want this site expanded!');
+      }));
+
+      // initialize
+      reset(); loadScores();
+    })();
+  </script>
+</body>
+</html>
